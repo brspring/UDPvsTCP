@@ -1,36 +1,39 @@
 import socket
+import os
 import time
+
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 ip = "127.0.0.1"
-
 porta = 1500
 buffer = 2048
 
-total_enviados = 0
-total_recebidos = 0
+fileName = input("Insira o nome do arquivo para enviar: ")
 
-while True:
-    mensagem_envio = input("Digite a mensagem a ser enviada: ")
-    if mensagem_envio.lower() == "sair":
-        break
+try:
+    # para enviar um unico arquivo nao eh necessario o loop infinito
+    filesize = os.path.getsize(fileName)
+    print(f"Enviando arquivo: {fileName} ({filesize} bytes)")
 
-    total_enviados += 1
+    # manda nome e tamanho
+    client.sendto(f"{fileName}_{filesize}".encode(), (ip, porta))
 
-    inicio_tempo = time.time()
+    # envia o arquivo em pedacos
+    with open(fileName, "rb") as file:
+        total_enviados = 0
+        inicio_tempo = time.time()
+        
+        while chunk := file.read(buffer - 10):
+            total_enviados += 1
+            client.sendto(chunk, (ip, porta))
 
-    client.sendto(mensagem_envio.encode(), (ip, porta))
-    try:
-        client.settimeout(2)
-        mensagem_bytes, endereco_ip_servidor = client.recvfrom(buffer)
-        fim_tempo = time.time()
+    # mensagem fim
+    client.sendto(b"FIM", (ip, porta))
+    
+    fim_tempo = time.time()
+    print(f"Arquivo enviado com sucesso.")
+    print(f"(RTT estimado: {(fim_tempo - inicio_tempo) * 1000:.2f} ms)")
 
-        total_recebidos += 1
-        rtt = (fim_tempo - inicio_tempo) * 1000 # x1000 para ser em ms
-        print(f"Resposta do servidor: {mensagem_bytes.decode()} (RTT: {rtt:.2f} ms)")
-    except socket.timeout:
-        print("Timeout: Servidor não respondeu a tempo.")
-
-print("\n--- Estatísticas ---")
-print(f"Pacotes enviados: {total_enviados}")
-print(f"Pacotes recebidos: {total_recebidos}")
-print(f"Perda de pacotes: {((total_enviados - total_recebidos) / total_enviados) * 100:.2f}%")
+except IOError:
+    print("Erro ao abrir ou enviar o arquivo.")
+finally:
+    client.close()
