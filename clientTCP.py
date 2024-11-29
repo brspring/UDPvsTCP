@@ -2,7 +2,7 @@ import socket
 import os
 import time
 
-host = "127.0.0.1"
+host = "10.254.221.11"
 port = 65432
 fileName = input("Insira o nome do arquivo para enviar: ")
 buffer_size = 2048
@@ -34,7 +34,7 @@ try:
         
     fim_tempo = time.time()
     rtt = (fim_tempo - inicio_tempo) * 1000 # x1000 para ser em ms
-    print(f"(RTT: {rtt:.2f} ms)")
+    print(f"(Tempo de envio do arquivo: {rtt:.2f} ms)")
     s.close()
 except IOError:
         print('Arquivo inválido ou erro ao abrir o arquivo.')
