@@ -1,9 +1,9 @@
 import socket
 import os
 import time
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-ip = "127.0.0.1"
-porta = 1500
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # cria socket udp
+ip = input("Insira o IP do servidor: ")
+porta = int(input("Insira a porta do servidor: "))
 buffer = 2048
 count = 3
 
@@ -11,10 +11,9 @@ server.bind((ip, porta))
 print(f"Servidor UDP rodando na porta {porta} e aguardando arquivos...")
 
 try:
-    #while True:
         # Recebe nome e tamanho do arquivo
         print("[*] Aguardando informações do arquivo...")
-        file_info, client_address = server.recvfrom(buffer)
+        file_info, client_address = server.recvfrom(buffer) # recebe nome e tamanho do arq e end cliente
         file_info = file_info.decode()
         filename, filesize = file_info.split("_")
         filesize = int(filesize)
@@ -28,10 +27,8 @@ try:
             while total_received < filesize:
                 data, client_address = server.recvfrom(buffer)
 
-                if count != 3:
-                    server.sendto("ACK".encode(), client_address)  # Envia confirmação
+                server.sendto("ACK".encode(), client_address)  # Envia confirmação
             
-                count += 1
                 fo.write(data)
                 total_received += len(data)
 
